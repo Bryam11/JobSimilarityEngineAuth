@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: auth
+
+  datasource:
+    url: jdbc:postgresql://dpg-d213ta3uibrs73e6s5g0-a.oregon-postgres.render.com/auth_db
+    username: tecazuay
+    password: TNLPHxmZMvkchrGSWG6wXK1TIIRl2LC4
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8081
+
+jwt:
+  private:
+    key: classpath:app.key
+  public:
+    key: classpath:app.pub
+  expiration:
+    time: 86400000
