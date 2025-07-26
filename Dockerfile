@@ -1,19 +1,27 @@
-# Etapa de construcción
-FROM maven:3.8.1-openjdk-17-slim AS build
+# Etapa de construcción con Maven y JDK 17
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
+# Crear directorio de trabajo
 WORKDIR /app
 
+# Copiar pom.xml y descargar dependencias
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:go-offline
 
+# Copiar el resto del código fuente
 COPY src ./src
-RUN mvn package -DskipTests
 
-# Etapa de ejecución
-FROM openjdk:17-alpine
+# Construir el proyecto sin correr pruebas
+RUN mvn clean package -DskipTests
 
-EXPOSE 9000
+# Etapa de ejecución: imagen ligera con JDK 17
+FROM eclipse-temurin:17-jre-alpine
 
-COPY --from=build /app/target/auth*.jar app.jar
+# Puerto expuesto en Cloud Run (ajusta si usas otro puerto)
+EXPOSE 8080
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+# Copiar el .jar compilado desde la etapa de build
+COPY --from=build /app/target/*.jar app.jar
+
+# Comando de ejecución
+ENTRYPOINT ["java", "-jar", "/app.jar"]
