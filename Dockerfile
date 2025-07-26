@@ -1,32 +1,19 @@
-# --- ETAPA DE CONSTRUCCIÓN ---
-FROM maven:3.8-openjdk-17 AS builder
+# Etapa de construcción
+FROM maven:3.8.1-openjdk-17-slim AS build
 
-# Establecer directorio de trabajo
 WORKDIR /app
 
-# Copiar archivo de configuración de Maven
 COPY pom.xml .
-
-# Descargar dependencias (en una capa separada para aprovechar la caché)
 RUN mvn dependency:go-offline -B
 
-# Copiar código fuente
 COPY src ./src
-
-# Construir la aplicación
 RUN mvn package -DskipTests
 
-# --- ETAPA FINAL ---
-FROM openjdk:17-slim
+# Etapa de ejecución
+FROM openjdk:17-alpine
 
-# Establecer directorio de trabajo
-WORKDIR /app
+EXPOSE 9000
 
-# Copiar el JAR generado desde la etapa de construcción
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=build /app/target/auth*.jar app.jar
 
-# Exponer puerto (ajustar según tu aplicación)
-EXPOSE 8080
-
-# Comando para iniciar la aplicación
-CMD ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java","-jar","/app.jar"]
