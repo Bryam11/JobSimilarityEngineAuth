@@ -6,6 +6,7 @@ import com.tecazuay.auth.application.dto.RegisterRequestDto;
 import com.tecazuay.auth.domain.model.User;
 import com.tecazuay.auth.domain.port.AuthService;
 import com.tecazuay.auth.domain.service.JwtTokenProvider;
+import com.tecazuay.auth.infrastructure.util.AESUtil;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,13 +22,13 @@ public class AuthController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequestDto registerRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequestDto registerRequest) throws Exception {
         User user = User.builder()
-                .fullName(registerRequest.getFullName())
-                .email(registerRequest.getEmail())
-                .professionalTitle(registerRequest.getProfessionalTitle())
-                .company(registerRequest.getCompany())
-                .password(registerRequest.getPassword())
+                .fullName(AESUtil.decrypt(registerRequest.getFullName()))
+                .email(AESUtil.decrypt(registerRequest.getEmail()))
+                .professionalTitle(AESUtil.decrypt(registerRequest.getProfessionalTitle()))
+                .company(AESUtil.decrypt(registerRequest.getCompany()))
+                .password(AESUtil.decrypt(registerRequest.getPassword()))
                 .build();
 
         User registeredUser = authService.registerUser(user);
@@ -38,10 +39,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDto loginRequest) {
+    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequestDto loginRequest) throws Exception {
         String token = authService.authenticateUser(
-                loginRequest.getEmail(),
-                loginRequest.getPassword()
+                AESUtil.decrypt(loginRequest.getEmail()),
+                AESUtil.decrypt(loginRequest.getPassword())
         );
 
         return ResponseEntity.ok(new AuthResponseDto(token, "Bearer"));
