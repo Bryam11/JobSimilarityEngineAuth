@@ -1,10 +1,11 @@
 package com.tecazuay.auth.domain.service;
 
+import com.tecazuay.auth.application.exception.InvalidCredentialsException;
+import com.tecazuay.auth.application.exception.UserAlreadyExistsException;
 import com.tecazuay.auth.domain.model.User;
 import com.tecazuay.auth.domain.port.AuthService;
 import com.tecazuay.auth.domain.port.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public User registerUser(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new RuntimeException("Email already in use");
+            throw new UserAlreadyExistsException("User with email " + user.getEmail() + " already exists");
         }
 
         // Encrypt the password
@@ -33,11 +34,11 @@ public class AuthServiceImpl implements AuthService {
     public String authenticateUser(String email, String password) {
         // Find user by email
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadCredentialsException("Invalid email or password"));
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
         // Validate password
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadCredentialsException("Invalid email or password");
+            throw new InvalidCredentialsException("Invalid email or password");
         }
 
         // Generate JWT token
