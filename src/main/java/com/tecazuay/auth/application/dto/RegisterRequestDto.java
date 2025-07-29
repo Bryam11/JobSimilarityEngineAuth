@@ -10,7 +10,6 @@ public class RegisterRequestDto {
     private String fullName;
 
     @NotBlank(message = "Email is required")
-    @Email(message = "Email must be valid")
     private String email;
 
     private String professionalTitle;
